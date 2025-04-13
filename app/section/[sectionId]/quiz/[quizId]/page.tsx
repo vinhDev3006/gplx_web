@@ -8,7 +8,7 @@ import { globalQuizLists, globalQuestions } from "@/lib/data"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
-import { CheckCircle2, XCircle, Save, ArrowLeft, HelpCircle, RotateCcw } from "lucide-react"
+import { CheckCircle2, XCircle, Save, ArrowLeft, HelpCircle, RotateCcw, Award } from "lucide-react"
 import { toast } from "@/components/ui/use-toast"
 import { Toaster } from "@/components/ui/toaster"
 
@@ -27,6 +27,7 @@ export default function QuizPage({ params }: { params: { sectionId: string; quiz
   const [score, setScore] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [showConfetti, setShowConfetti] = useState(false)
 
   // Get questions for this quiz
   const questions = quiz
@@ -157,13 +158,30 @@ export default function QuizPage({ params }: { params: { sectionId: string; quiz
     }
   }, [])
 
+  // Show confetti effect when quiz is completed with a good score
+  useEffect(() => {
+    if (quizCompleted && score >= 80) {
+      setShowConfetti(true)
+      const timer = setTimeout(() => {
+        setShowConfetti(false)
+      }, 5000)
+      return () => clearTimeout(timer)
+    }
+  }, [quizCompleted, score])
+
   if (!quiz) {
     return (
-      <div className="container mx-auto px-4 py-8 text-center">
-        <h1 className="text-2xl font-bold mb-4">Không tìm thấy bài kiểm tra</h1>
-        <Link href={`/section/${sectionId}`}>
-          <Button>Quay lại phần học</Button>
-        </Link>
+      <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white py-12">
+        <div className="container mx-auto px-4 text-center">
+          <div className="bg-white p-8 rounded-xl shadow-lg max-w-md mx-auto">
+            <XCircle className="h-16 w-16 text-red-500 mx-auto mb-4" />
+            <h1 className="text-2xl font-bold mb-4">Không tìm thấy bài kiểm tra</h1>
+            <p className="text-gray-600 mb-6">Bài kiểm tra bạn đang tìm kiếm không tồn tại hoặc đã bị xóa.</p>
+            <Link href={`/section/${sectionId}`}>
+              <Button className="w-full">Quay lại phần học</Button>
+            </Link>
+          </div>
+        </div>
       </div>
     )
   }
@@ -250,27 +268,59 @@ export default function QuizPage({ params }: { params: { sectionId: string; quiz
 
   if (!currentQuestion) {
     return (
-      <div className="container mx-auto px-4 py-8 text-center">
-        <h1 className="text-2xl font-bold mb-4">Không tìm thấy câu hỏi cho bài kiểm tra này</h1>
-        <Link href={`/section/${sectionId}`}>
-          <Button>Quay lại phần học</Button>
-        </Link>
+      <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white py-12">
+        <div className="container mx-auto px-4 text-center">
+          <div className="bg-white p-8 rounded-xl shadow-lg max-w-md mx-auto">
+            <XCircle className="h-16 w-16 text-red-500 mx-auto mb-4" />
+            <h1 className="text-2xl font-bold mb-4">Không tìm thấy câu hỏi cho bài kiểm tra này</h1>
+            <p className="text-gray-600 mb-6">Bài kiểm tra này không có câu hỏi hoặc đã bị xóa.</p>
+            <Link href={`/section/${sectionId}`}>
+              <Button className="w-full">Quay lại phần học</Button>
+            </Link>
+          </div>
+        </div>
       </div>
     )
   }
 
   if (quizCompleted) {
     const passed = quiz.passPercentage ? score >= quiz.passPercentage : true
+    const correctCount = Object.values(correctAnswers).filter((value) => value === true).length
 
     return (
       <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white py-12">
         <Toaster />
+        {showConfetti && (
+          <div className="fixed inset-0 pointer-events-none z-50">
+            <div className="absolute inset-0 overflow-hidden">
+              {/* Confetti animation elements */}
+              {[...Array(50)].map((_, i) => (
+                <div
+                  key={i}
+                  className="absolute animate-float"
+                  style={{
+                    left: `${Math.random() * 100}%`,
+                    top: `-${Math.random() * 20}%`,
+                    animation: `float ${3 + Math.random() * 2}s ease-in-out infinite`,
+                    animationDelay: `${Math.random() * 3}s`,
+                    width: `${Math.random() * 10 + 5}px`,
+                    height: `${Math.random() * 10 + 5}px`,
+                    backgroundColor: ["#3B82F6", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6"][
+                      Math.floor(Math.random() * 5)
+                    ],
+                    transform: `rotate(${Math.random() * 360}deg)`,
+                  }}
+                ></div>
+              ))}
+            </div>
+          </div>
+        )}
         <div className="container mx-auto px-4 max-w-3xl">
           <Card className="p-8 shadow-lg rounded-xl border-0">
             <div className="text-center">
               <div className="inline-flex items-center justify-center w-24 h-24 rounded-full bg-blue-50 mb-6">
                 {passed ? (
-                  <CheckCircle2 className="h-12 w-12 text-green-500" />
+                  <Award className="h-12 w-12 text-yellow-500" />
                 ) : (
                   <XCircle className="h-12 w-12 text-red-500" />
                 )}
@@ -279,8 +329,7 @@ export default function QuizPage({ params }: { params: { sectionId: string; quiz
               <div className="mb-8">
                 <div className="text-6xl font-bold mb-2 text-blue-600">{score}%</div>
                 <p className="text-lg text-gray-600">
-                  Bạn đã trả lời đúng {Object.values(correctAnswers).filter((value) => value === true).length} trong số{" "}
-                  {questions.length} câu hỏi.
+                  Bạn đã trả lời đúng {correctCount} trong số {questions.length} câu hỏi.
                 </p>
               </div>
 

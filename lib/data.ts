@@ -104,7 +104,7 @@ export interface Question {
       title: "Luyện tập Địa lý Thế giới",
       description: "Luyện tập kiến thức về các thủ đô trên thế giới.",
       image: "https://example.com/world-geography.jpg",
-      questionIds: [1], // Directly referencing question IDs
+      questionIds: [1, 2, 3], // Directly referencing question IDs
       category: ["Địa lý"],
       enableStorage: true, // Bật tính năng lưu trữ cho bài kiểm tra này
     },

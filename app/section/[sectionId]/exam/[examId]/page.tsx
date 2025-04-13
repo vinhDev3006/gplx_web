@@ -438,7 +438,13 @@ export default function ExamPage({ params }: { params: { sectionId: string; exam
                             </svg>
                           )}
                         </div>
-                        <span className="text-lg">{choice}</span>
+                        <span className={`text-lg ${
+                          selectedAnswers[currentQuestion.id] === choice
+                            ? "text-blue-700 font-semibold" // Example: Make selected text darker blue and bold
+                            : "text-gray-900"               // Example: Default text color for unselected items
+                        }`}>
+                          {choice}
+                        </span>
                       </div>
                     </div>
                   ))}
